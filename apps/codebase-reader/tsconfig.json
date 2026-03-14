@@ -1,0 +1,16 @@
+{
+  "extends": "@shared/tsconfig/library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../../packages/tsconfig" },
+    { "path": "../../packages/types" },
+    { "path": "../../packages/database" },
+    { "path": "../../packages/env" }
+  ]
+}

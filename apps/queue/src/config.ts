@@ -1,7 +1,5 @@
-import { queueEnv } from "@shared/env/queue";
-
 export const temporalConfig = {
-  address: queueEnv.TEMPORAL_ADDRESS,
-  namespace: queueEnv.TEMPORAL_NAMESPACE,
-  taskQueue: queueEnv.TEMPORAL_TASK_QUEUE,
+  address: process.env["TEMPORAL_ADDRESS"] ?? "localhost:7233",
+  namespace: process.env["TEMPORAL_NAMESPACE"] ?? "default",
+  taskQueue: process.env["TEMPORAL_TASK_QUEUE"] ?? "template-task-queue",
 };

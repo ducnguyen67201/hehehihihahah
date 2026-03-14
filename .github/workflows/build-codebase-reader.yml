@@ -1,0 +1,47 @@
+name: Build Codebase Reader
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/codebase-reader/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/codebase-reader/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma types
+        run: npm run db:generate
+
+      - name: Type check
+        run: npm run type-check --workspace @app/codebase-reader
+
+      - name: Lint
+        run: npm run lint --workspace @app/codebase-reader
+
+      - name: Build
+        run: npm run build --workspace @app/codebase-reader
