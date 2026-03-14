@@ -30,6 +30,7 @@
   "devDependencies": {
     "@shared/tsconfig": "*",
     "@types/node": "^22",
+    "@types/pg": "^8",
     "tsx": "^4.20.6",
     "typescript": "^5.7"
   }

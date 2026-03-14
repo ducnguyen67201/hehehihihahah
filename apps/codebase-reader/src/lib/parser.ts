@@ -103,8 +103,8 @@ function parseWithTreeSitter(
     grammar = require("tree-sitter-go");
   }
 
-  // @ts-expect-error tree-sitter dynamic grammar loading
-  parser.setLanguage(grammar);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parser.setLanguage(grammar as any);
   const tree = parser.parse(source);
 
   const chunks: ParsedChunk[] = [];
