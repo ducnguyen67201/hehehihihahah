@@ -64,3 +64,78 @@ model Post {
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   workspaceId String
 }
+
+// ── Codebase Reader ─────────────────────────────────────────────────
+
+model TrackedRepository {
+  id            String    @id @default(cuid())
+  owner         String
+  name          String
+  branch        String    @default("main")
+  clonePath     String
+  lastSyncedAt  DateTime?
+  lastCommitSha String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  files CodeFile[]
+
+  @@unique([owner, name, branch])
+}
+
+model CodeFile {
+  id                String    @id @default(cuid())
+  path              String
+  language          String
+  contentHash       String
+  lastCommitSha     String?
+  lastCommitMessage String?
+  lastCommitAuthor  String?
+  lastCommitAt      DateTime?
+  indexedAt         DateTime  @default(now())
+
+  repository   TrackedRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryId String
+
+  chunks  CodeChunk[]
+  commits FileCommit[]
+
+  @@unique([repositoryId, path])
+}
+
+model CodeChunk {
+  id         String    @id @default(cuid())
+  chunkType  ChunkType
+  symbolName String?
+  startLine  Int
+  endLine    Int
+  content    String
+  // embedding vector(1024) — added via raw SQL migration
+  createdAt  DateTime  @default(now())
+
+  file   CodeFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId String
+}
+
+model FileCommit {
+  id          String   @id @default(cuid())
+  sha         String
+  message     String
+  author      String
+  authorEmail String
+  committedAt DateTime
+
+  file   CodeFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId String
+
+  @@unique([fileId, sha])
+}
+
+enum ChunkType {
+  FUNCTION
+  CLASS
+  ROUTE
+  TYPE
+  MODULE
+}

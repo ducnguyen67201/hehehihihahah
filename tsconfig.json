@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/types": ["packages/types/src/index.ts"],
+      "@shared/types/*": ["packages/types/src/*"],
+      "@shared/database": ["packages/database/src/index.ts"],
+      "@shared/env": ["packages/env/src/index.ts"],
+      "@shared/env/*": ["packages/env/src/*"],
+      "@shared/rest": ["packages/rest/src/index.ts"],
+      "@app/codebase-reader": ["apps/codebase-reader/src/index.ts"],
+      "@app/codebase-reader/*": ["apps/codebase-reader/src/*"]
+    }
+  }
+}

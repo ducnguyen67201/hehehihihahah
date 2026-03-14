@@ -1,0 +1,37 @@
+{
+  "name": "@app/codebase-reader",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "dev:doppler": "doppler run -- tsx src/index.ts",
+    "build": "tsc --build",
+    "build:doppler": "doppler run -- tsc --build",
+    "start": "node dist/index.js",
+    "start:doppler": "doppler run -- node dist/index.js",
+    "type-check": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "echo \"No tests configured yet\""
+  },
+  "dependencies": {
+    "@shared/database": "*",
+    "@shared/env": "*",
+    "@shared/types": "*",
+    "@temporalio/client": "^1.11.5",
+    "openai": "^4.98.0",
+    "simple-git": "^3.27.0",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-go": "^0.21.2",
+    "tree-sitter-python": "^0.21.0",
+    "tree-sitter-typescript": "^0.21.2",
+    "voyageai": "^0.0.5"
+  },
+  "devDependencies": {
+    "@shared/tsconfig": "*",
+    "@types/node": "^22",
+    "@types/pg": "^8",
+    "tsx": "^4.20.6",
+    "typescript": "^5.7"
+  }
+}

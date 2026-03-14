@@ -368,3 +368,68 @@ export function ThemeToggle() {
 
 - `DATABASE_URL` — PostgreSQL connection string. Set in `packages/database/.env`
 - `.env.example` at root for reference
+
+## Codebase Reader
+
+### App: `apps/codebase-reader`
+
+A standalone Node.js library service (no HTTP surface) that provides:
+- `git.ts` — `cloneRepo`, `pullRepo`, `getDiff`, `getFileHistory`, `listTrackedFiles` via `simple-git`
+- `parser.ts` — tree-sitter AST parsing for TypeScript/Python/Go → `ParsedChunk[]`
+- `embedder.ts` — batch embedding via Voyage AI (`voyage-code-3`) or OpenAI
+- `indexer.ts` — orchestrates parse → embed → upsert `CodeFile` + `CodeChunk` rows
+
+Consumed by `apps/queue` Temporal activities — never called directly from HTTP routes.
+
+### tRPC: `codebaseRouter` (`packages/rest/src/routers/codebase.ts`)
+
+Six procedures on `appRouter.codebase`:
+
+| Procedure | Description |
+|---|---|
+| `codebase.registerRepo` | Create `TrackedRepository`, triggers initial clone workflow |
+| `codebase.semanticSearch` | pgvector cosine similarity on `CodeChunk.embedding` |
+| `codebase.fileLookup` | All chunks for a specific file path |
+| `codebase.recentChanges` | Files changed within a time window |
+| `codebase.symbolLookup` | Find function/class/type by name (ILIKE) |
+| `codebase.blameOwnership` | Commit history for a file |
+
+All query procedures return `CodeQueryResult[]` from `@shared/types`.
+
+### pgvector Raw SQL Pattern
+
+The `embedding` column is `vector(1024)` — not expressible in Prisma schema. Use raw SQL for vector operations:
+
+```ts
+// Semantic search via cosine distance
+const rows = await ctx.prisma.$queryRawUnsafe<Row[]>(
+  `SELECT *, (embedding <=> '[...]'::vector) AS distance
+   FROM "CodeChunk"
+   ORDER BY embedding <=> '[...]'::vector
+   LIMIT 5`
+);
+
+// Insert with embedding (in indexer.ts)
+await prisma.$executeRawUnsafe(
+  `INSERT INTO "CodeChunk" (..., "embedding") VALUES (..., '[...]'::vector)`
+);
+```
+
+### Queue: Temporal Workflows & Activities
+
+**New workflow:** `syncRepositoryWorkflow` — handles initial clone + scheduled 15-min incremental sync.
+
+**New activities:** `gitCloneActivity`, `gitPullActivity`, `getDiffActivity`, `parseAndIndexActivity`, `fetchGitHistoryActivity`, `updateRepoSyncState`.
+
+Cron schedules are registered at worker startup for all active `TrackedRepository` rows.
+
+### New Environment Variables
+
+- `GITHUB_TOKEN` — fine-grained PAT with `contents: read` for private repos
+- `VOYAGE_API_KEY` — Voyage AI embedding access (preferred for code)
+- `OPENAI_API_KEY` — OpenAI embedding fallback
+- `CODE_REPOS_DIR` — local path for cloned repos (default `/data/repos`)
+- `EMBEDDING_MODEL` — e.g. `voyage-code-3` or `text-embedding-3-small`
+- `EMBEDDING_DIMENSIONS` — `1024` (Voyage) or `1536` (OpenAI); must match pgvector column size
+
+All managed via `packages/env/src/codebase-reader.ts` → `codebaseReaderEnv`.
