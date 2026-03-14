@@ -6,11 +6,5 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": ["src"],
-  "references": [
-    { "path": "../../packages/tsconfig" },
-    { "path": "../../packages/types" },
-    { "path": "../../packages/database" },
-    { "path": "../../packages/env" }
-  ]
+  "include": ["src"]
 }
